@@ -1,0 +1,15 @@
+{
+  "name": "frontierstack",
+  "owner": {
+    "name": "Enfour, Inc.",
+    "url": "https://www.frontierstack.app"
+  },
+  "description": "The FrontierStack plugin for Claude. FrontierStack is made by Enfour, Inc. — https://www.frontierstack.app",
+  "plugins": [
+    {
+      "name": "frontierstack",
+      "source": "./",
+      "description": "Check and safely operate the Macs, servers, DNS, certificates and routers you manage with FrontierStack. FrontierStack is made by Enfour, Inc. — https://www.frontierstack.app"
+    }
+  ]
+}
