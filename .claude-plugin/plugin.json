@@ -1,7 +1,7 @@
 {
   "name": "frontierstack",
   "displayName": "FrontierStack",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Let Claude check and safely operate the Macs, servers, DNS, certificates and routers you manage with the FrontierStack macOS app. Read-only by default; credentials never leave your Mac. FrontierStack is made by Enfour, Inc. — https://www.frontierstack.app",
   "author": {
     "name": "Enfour, Inc.",
@@ -9,6 +9,7 @@
   },
   "homepage": "https://www.frontierstack.app/agents/",
   "repository": "https://github.com/richardnorthcott/frontierstack-claude-plugin",
+  "privacyPolicyUrl": "https://www.frontierstack.app/plugin/privacy.html",
   "license": "MIT",
   "keywords": [
     "server-administration",
