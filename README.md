@@ -28,20 +28,16 @@ does the work there, and returns the result with secrets removed.
 | `frontierstack-network-admin` skill | The network administrator role: DNS, certificates, routers, firewalls, VPNs, reachability |
 | `frontierstack-cloud` connection | Connects any Claude (web, desktop, mobile, Cowork, Claude Code) to your Macs through FrontierStack's gateway. Carries eight tools |
 
-Claude Code and Cowork on the Mac that runs FrontierStack can also reach the app directly, with its
-full tool catalog: use **Add to Claude Code** in FrontierStack's MCP Server pane. That connection
-stays on your Mac and is set up by the app, not by this plugin.
-
 ## Set it up
 
 1. Install FrontierStack on your Mac and add the servers, domains and routers you look after.
-2. In FrontierStack, open **MCP Server**, turn it on, and turn on **ChatGPT access** (the one
+2. Install this plugin. In Claude Code 2.1.275 or later:
+   `/plugin install frontierstack --marketplace richardnorthcott/frontierstack-claude-plugin`
+3. In FrontierStack, open **MCP & Agents**, turn it on, and turn on **ChatGPT access** (the one
    switch serves every cloud assistant, Claude included).
-3. Connect **frontierstack-cloud** from the plugin's Connectors tab, or with `/mcp` in Claude
+4. Connect **frontierstack-cloud** from the plugin's Connectors tab, or with `/mcp` in Claude
    Code, and sign in with your FrontierStack account. FrontierStack must be running on the Mac
    for requests to reach it.
-4. Optional, for Claude Code or Cowork on that same Mac: **Add to Claude Code** in the MCP Server
-   pane gives Claude the app's full tool catalog over a connection that never leaves the Mac.
 
 Start by asking for a health report. Leave changes off until you trust what you see.
 
@@ -49,7 +45,7 @@ Start by asking for a health report. Leave changes off until you trust what you 
 
 - **Read-only by default.** Restarting a service, rebooting or running a script works only
   after you turn on **Allow changes via MCP** (and, for scripts, **Allow scripts via MCP**) in
-  FrontierStack's MCP Server pane.
+  FrontierStack's MCP & Agents pane.
   Each change can wait for your approval on the Mac or iPhone, and every change is written to
   an audit log.
 - **App Lock wins.** While FrontierStack is locked, changes (or all requests, in full lock) are

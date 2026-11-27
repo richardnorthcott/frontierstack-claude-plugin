@@ -10,9 +10,8 @@ description: >-
   CLI. Read-only by default; changes are approved on the Mac.
 license: MIT
 compatibility: >-
-  Requires the FrontierStack macOS app (https://www.frontierstack.app) with MCP Server turned on.
-  Local agents on that Mac use its MCP bridge (needs Node.js); cloud agents use the hosted
-  endpoint with a FrontierStack account.
+  Requires the FrontierStack macOS app (https://www.frontierstack.app) with ChatGPT access turned
+  on in its MCP & Agents pane, and a FrontierStack account for the plugin's hosted connection.
 metadata:
   author: "Enfour, Inc."
   version: "1.0.0"
@@ -56,27 +55,25 @@ bearer token into a prompt, project file, memory or client config.
 Prefer **MCP** for a tool-using agent, the **CLI** for shell scripts, and **deep links** only to
 bring a human to the right screen.
 
-### 1. MCP through the local bridge (recommended)
+### 1. MCP: the plugin's connection
 
-The user turns on **FrontierStack ▸ MCP Server** (or presses an **Add to …** button under
-**MCP Server ▸ AI clients**, which writes the client's config for them). The app then writes an
-owner-only stdio bridge at:
+This plugin declares one MCP connection, **frontierstack-cloud**
+(`https://frontierstack.app/plugin/mcp`: streamable HTTP, OAuth 2.1 sign-in with a FrontierStack
+customer account). Use it. Do not add or configure any other MCP server, and never write MCP
+client configuration. If it is not connected, ask the user to connect it from the plugin's
+Connectors tab (or `/mcp` in Claude Code) and sign in with their FrontierStack account.
 
-```
-$HOME/Library/Application Support/FrontierStack/mcp-bridge
-```
+It reaches the user's Macs that have **MCP & Agents ▸ ChatGPT access** turned on while FrontierStack
+is running there; that one switch serves every cloud assistant, not only ChatGPT. If tool calls
+fail to connect, tell the user to check both. Do not probe ports.
 
-It takes no arguments and reads its credential from the Keychain itself, so the client config
-contains no token. The bridge needs Node.js. If tool calls fail to connect, tell the user to
-check that FrontierStack is running (or that "Keep MCP and the CLI available when FrontierStack
-is closed" is on) and that MCP Server is enabled. Do not probe ports.
+It carries eight tools: `list_frontierstack_macs`, `get_server_health`, `get_fleet_context`,
+`get_alert_errors`, `diagnose`, `read_logs`, `service_action` and `replace_credential`. Call
+`list_frontierstack_macs` first when the user has not named a Mac.
 
-On `initialize` the server returns `instructions`, the `debug-down-service` and
-`health-report` prompts, and resources including `frontierstack://capabilities`,
-`frontierstack://agent-role`, `frontierstack://health` and `frontierstack://manual`.
-`tools/list` intentionally returns a small bootstrap pair so the client is not flooded.
-
-For each task:
+If a FrontierStack server that offers `frontierstack_find_tools` and `frontierstack_call` is
+already connected, prefer it for work on that Mac: it has the full tool catalog. With it, for
+each task:
 1. Call `frontierstack_find_tools` with the concrete job ("why is example.com returning 502").
 2. Choose the narrowest returned tool and follow its `inputSchema`.
 3. Invoke it through `frontierstack_call` with its exact name and an `arguments` object.
@@ -88,41 +85,21 @@ the catalog; do not load all of it for routine work.
 
 ### 2. `frontierstack` CLI
 
-Installed from the app (MCP Server pane, or Remote Control & Lock ▸ Command Line). It reads its
+Installed from the app (Remote Control & Lock ▸ Command Line). It reads its
 credential from the Keychain at run time and starts the app hidden when needed.
 
 ```
 frontierstack info              frontierstack role
 frontierstack discover          frontierstack health
 frontierstack tools             frontierstack call <tool> '<json>'
-frontierstack mcp               frontierstack run --secret NAME -- <command>
+frontierstack run --secret NAME -- <command>
 ```
 
 `frontierstack run` injects the user's stored Script Secrets as environment variables and masks
 them in the output. Use it instead of asking for a secret. Exit code 69 means FrontierStack is
 not answering; 78 means the CLI is not configured.
 
-### 3. Remote MCP (FrontierStack account)
-
-`https://frontierstack.app/plugin/mcp` is a hosted MCP endpoint (streamable HTTP, OAuth 2.1
-sign-in with a FrontierStack customer account). It reaches the user's Macs that have
-**MCP Server ▸ ChatGPT access** turned on while FrontierStack is running there; that one switch
-serves every cloud assistant, not only ChatGPT. It carries eight tools:
-`list_frontierstack_macs`, `get_server_health`, `get_fleet_context`, `get_alert_errors`,
-`diagnose`, `read_logs`, `service_action` and `replace_credential`. Call
-`list_frontierstack_macs` first when the user has not named a Mac.
-
-**Code Mode** is the same server with three tools: `https://frontierstack.app/plugin/mcp/code`
-remotely, or `http://127.0.0.1:<port>/mcp/code` on a Mac with FrontierStack 2.34 or later. Call
-`search` with the task to get TypeScript declarations, then `execute` with a short JavaScript
-program (the body of an async function) that calls `await frontierstack.<name>(args)` and returns
-only what matters. Scripts can only read; make a change with `frontierstack_call` and the exact
-tool name, and it gets its usual approval.
-
-Use it where the local bridge can't run, such as a web or mobile chat or an agent on another
-machine. When both are connected, prefer the local bridge: it has the full tool catalog.
-
-### 4. Deep links — `frontierstack://`
+### 3. Deep links — `frontierstack://`
 
 Bring the app to the front on a screen (ignored while locked):
 `frontierstack://server/<name-or-id>` · `frontierstack://container/<name>` ·

@@ -9,8 +9,8 @@ description: >-
   approval and audit. Connects over MCP. The agent never receives network credentials.
 license: MIT
 compatibility: >-
-  Requires the FrontierStack macOS app (https://www.frontierstack.app) with MCP Server turned on,
-  reached through its local bridge (needs Node.js) or over Tailscale/VPN via HTTPS.
+  Requires the FrontierStack macOS app (https://www.frontierstack.app) with ChatGPT access turned
+  on in its MCP & Agents pane, and a FrontierStack account for the plugin's hosted connection.
 metadata:
   author: "Enfour, Inc."
   version: "1.0.0"
@@ -95,50 +95,31 @@ and let them decide in the app.
 You also cannot change your own permissions. `self-administration` is closed to external
 agents by design.
 
-## Before you can connect (operator does this, once)
+## How you connect
 
-FrontierStack runs two listeners with different reach, and this is enforced in code, not by
-convention:
+This plugin declares one MCP connection, **frontierstack-cloud**
+(`https://frontierstack.app/plugin/mcp`, sign-in with a FrontierStack account). It reaches the
+user's Macs that have **MCP & Agents ▸ ChatGPT access** turned on while FrontierStack is running. Do not
+add or configure any other MCP server, and never write MCP client configuration.
 
-- **Plaintext `http://127.0.0.1:8788/mcp` — loopback only.** A network peer can *never* be
-  admitted on this transport, whatever the scope setting.
-- **HTTPS — bound to all interfaces, with peer admission by source network.** This is the
-  remote path.
+That connection carries eight general tools: `list_frontierstack_macs`, `get_server_health`,
+`get_fleet_context`, `get_alert_errors`, `diagnose` (read-only lookups such as `dig`, `ping`,
+`curl` and `traceroute`), `read_logs`, `service_action` (web-service control) and
+`replace_credential`. That covers health, reachability and log work. It cannot manage DNS
+records, certificates, routers or firewalls.
 
-One of these must be true before any tool call will work:
+The full network tool surface below needs a FrontierStack server that offers
+`frontierstack_find_tools` and `frontierstack_call`. If one is already connected, use it. If not,
+and the task needs it, say that the plugin's connection can't make that change, point the user
+to FrontierStack's manual (https://www.frontierstack.app/manual/ch14.html), and stop.
 
-1. **Local worker on the same machine** — connect through the generated Keychain-backed
-   bridge at `$HOME/Library/Application Support/FrontierStack/mcp-bridge`. In FrontierStack:
-   **MCP Server ▸ AI clients** has an **Add to …** button per client (Claude Code, Codex,
-   Cursor, Gemini CLI, Grok, Hermes, OpenClaw, Amp, …), or run your client's own command, for
-   example `grok mcp add frontierstack -- "$HOME/Library/Application Support/FrontierStack/mcp-bridge"`.
-   The bridge reads the credential from the Keychain at call time; it is never written into a
-   file you can read.
-2. **Over Tailscale or a VPN, via HTTPS.** The operator enables **HTTPS for paired or remote
-   clients** and picks an "Accept remote connections from" scope — *Tailscale only*
-   (`100.64.0.0/10`, `fd7a:115c:a1e0::/48`), *Private LAN & private overlays* (RFC 1918 and
-   CGNAT, which covers WireGuard/OpenVPN), or explicit CIDRs. **You must be on that network.**
-   A cloud-hosted worker qualifies only if it is itself a tailnet/VPN node or is routed
-   through one.
-
-(The hosted endpoint `https://frontierstack.app/plugin/mcp`, with sign-in by FrontierStack
-account, reaches Macs that have **ChatGPT access** on, but carries only seven general tools
-(health, fleet context, alert errors, logs, web-service control, and read-only lookups such as
-`dig`, `ping`, `curl` and `traceroute` through `diagnose`). It cannot manage DNS records,
-certificates, routers or firewalls; that work needs one of the two paths above.)
-
-Connections from outside the configured scope are dropped before the request is even read.
-If your tool calls fail to connect, **stop and report it** — say whether you expected to be
-on the tailnet/VPN. Do not probe for the host, scan for the port, or try the plaintext port
-from off-box; it cannot serve you and the attempt is recorded.
-
-Being inside the network scope is **not** authentication — bearer auth still applies, and the
-scope is matched by source IP, so every node on that network reaches the same boundary. Never
-paste an MCP or control bearer token into a portal prompt, project file, routine or memory.
-If you are ever given one, treat it as leaked and say so.
+If your tool calls fail to connect, **stop and report it**. Do not probe for the host or scan
+for ports; the attempt is recorded. Never paste an MCP or control bearer token into a prompt,
+project file, routine or memory. If you are ever given one, treat it as leaked and say so.
 
 ## Finding your tools
 
+On the plugin's connection, call its eight tools directly. On a full FrontierStack server,
 `tools/list` deliberately returns a small bootstrap set so you are not flooded. For each task:
 
 1. Call `frontierstack_find_tools` with the concrete job ("check why mail.example.com won't

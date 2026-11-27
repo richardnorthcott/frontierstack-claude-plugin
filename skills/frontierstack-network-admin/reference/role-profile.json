@@ -44,31 +44,22 @@
     "confidential"
   ],
   "transport": {
-    "plaintextEndpoint": "http://127.0.0.1:8788/mcp",
-    "plaintextBinding": "loopback-only",
-    "plaintextCanServeNetworkPeer": false,
-    "tlsBinding": "all-interfaces",
-    "tlsEnabledBy": "MCP Servers \u25b8 HTTPS for paired or remote clients",
-    "remoteScopes": {
-      "tailscale": [
-        "100.64.0.0/10",
-        "fd7a:115c:a1e0::/48"
-      ],
-      "private": [
-        "10.0.0.0/8",
-        "172.16.0.0/12",
-        "192.168.0.0/16",
-        "169.254.0.0/16",
-        "100.64.0.0/10",
-        "fc00::/7",
-        "fe80::/10"
-      ],
-      "custom": "operator-supplied CIDRs"
-    },
-    "peerAdmission": "Source-network match enforced before the request is read; non-matching peers are dropped and recorded.",
-    "scopeIsNotAuthentication": true,
-    "cloudPortalReachable": "only if the worker is a tailnet/VPN node or routed through one",
-    "note": "Credentials are read from the login Keychain by the generated bridge at call time and are never serialized into agent-readable files."
+    "pluginConnection": "frontierstack-cloud",
+    "endpoint": "https://frontierstack.app/plugin/mcp",
+    "auth": "OAuth 2.1 sign-in with a FrontierStack customer account",
+    "reaches": "Macs on the account with ChatGPT access turned on while FrontierStack is running",
+    "hostedTools": [
+      "list_frontierstack_macs",
+      "get_server_health",
+      "get_fleet_context",
+      "get_alert_errors",
+      "diagnose",
+      "read_logs",
+      "service_action",
+      "replace_credential"
+    ],
+    "fullToolSurface": "only on a FrontierStack server that offers frontierstack_find_tools and frontierstack_call",
+    "note": "Credentials stay in the Mac's Keychain and are never returned to the agent."
   },
   "toolSurface": {
     "observe": [
